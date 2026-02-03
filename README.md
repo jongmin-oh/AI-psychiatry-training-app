@@ -1,2 +1,16 @@
-# AI-psychiatry-training-app
-학교 Peer Counseling(또래 상담) 인력을 전문화하여 학생들의 정신건강 지원력을 강화하는 AI 상담 트레이닝 앱
+# psychiatry_training
+
+A new Flutter project.
+
+## Getting Started
+
+This project is a starting point for a Flutter application.
+
+A few resources to get you started if this is your first Flutter project:
+
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
