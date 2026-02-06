@@ -96,7 +96,9 @@ class ScenarioDetailScreen extends ConsumerWidget {
           child: SafeArea(
             child: ElevatedButton(
               onPressed: () {
-                ref.read(currentSessionProvider.notifier).startSession(scenario.id);
+                ref
+                    .read(currentSessionProvider.notifier)
+                    .startSession(scenario.id, greeting: scenario.greeting);
                 context.push('/chat');
               },
               child: const Text('훈련 시작'),

@@ -15,13 +15,27 @@ class CurrentSessionNotifier extends StateNotifier<TrainingSession?> {
 
   CurrentSessionNotifier(this.ref) : super(null);
 
-  void startSession(String scenarioId) {
+  /// greeting이 있으면 AI 학생의 첫마디로 초기 메시지 추가
+  void startSession(String scenarioId, {String? greeting}) {
     final uuid = const Uuid();
+    final sessionId = uuid.v4();
+    final initialMessages = <ChatMessage>[];
+    if (greeting != null && greeting.isNotEmpty) {
+      initialMessages.add(
+        ChatMessage(
+          id: uuid.v4(),
+          sessionId: sessionId,
+          sender: 'ai',
+          content: greeting,
+          timestamp: DateTime.now(),
+        ),
+      );
+    }
     state = TrainingSession(
-      id: uuid.v4(),
+      id: sessionId,
       scenarioId: scenarioId,
       startTime: DateTime.now(),
-      messages: [],
+      messages: initialMessages,
       isCompleted: false,
     );
   }

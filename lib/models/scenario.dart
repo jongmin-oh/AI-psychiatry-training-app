@@ -12,6 +12,7 @@ class Scenario {
   final String category;
   final String background;
   final String learningGoals;
+  final String greeting;
   final String systemPrompt;
   final Map<String, dynamic> characterProfile;
 
@@ -24,6 +25,7 @@ class Scenario {
     required this.category,
     required this.background,
     required this.learningGoals,
+    required this.greeting,
     required this.systemPrompt,
     required this.characterProfile,
   });

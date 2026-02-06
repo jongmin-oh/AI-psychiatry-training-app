@@ -15,6 +15,7 @@ Scenario _$ScenarioFromJson(Map<String, dynamic> json) => Scenario(
       category: json['category'] as String,
       background: json['background'] as String,
       learningGoals: json['learningGoals'] as String,
+      greeting: json['greeting'] as String,
       systemPrompt: json['systemPrompt'] as String,
       characterProfile: json['characterProfile'] as Map<String, dynamic>,
     );
@@ -28,6 +29,7 @@ Map<String, dynamic> _$ScenarioToJson(Scenario instance) => <String, dynamic>{
       'category': instance.category,
       'background': instance.background,
       'learningGoals': instance.learningGoals,
+      'greeting': instance.greeting,
       'systemPrompt': instance.systemPrompt,
       'characterProfile': instance.characterProfile,
     };
