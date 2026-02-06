@@ -22,7 +22,7 @@ class GeminiService {
     );
   }
 
-  /// bash 스크립트와 동일한 요청 형식: role "user", thinkingConfig.thinkingBudget: -1
+  /// 단일 텍스트 요청용 (피드백 등)
   Map<String, dynamic> _buildRequestBody(
     String text, {
     Map<String, dynamic>? generationConfig,
@@ -50,20 +50,46 @@ class GeminiService {
     };
   }
 
+  /// 멀티턴 대화 형식: contents를 user/model 교대로 구성
   Future<String> generateAIResponse({
     required String systemPrompt,
     required List<Map<String, String>> conversationHistory,
     required String userMessage,
   }) async {
-    final fullPrompt = StringBuffer('$systemPrompt\n\n=== 대화 내역 ===\n');
+    // sender 'user' -> role 'user', sender 'ai' -> role 'model'
+    final contents = <Map<String, dynamic>>[];
     for (var message in conversationHistory) {
-      final speaker = message['sender'] == 'user' ? '상담원' : 'AI 학생';
-      fullPrompt.writeln('$speaker: ${message['content']}');
+      final role = message['sender'] == 'user' ? 'user' : 'model';
+      contents.add({
+        'role': role,
+        'parts': [
+          {'text': message['content'] ?? ''},
+        ],
+      });
     }
-    fullPrompt.writeln('상담원: $userMessage');
-    fullPrompt.write('AI 학생:');
+    // 현재 상담원(유저) 메시지 추가
+    contents.add({
+      'role': 'user',
+      'parts': [
+        {'text': userMessage},
+      ],
+    });
 
-    final body = _buildRequestBody(fullPrompt.toString());
+    final body = {
+      'system_instruction': {
+        'parts': [
+          {'text': systemPrompt},
+        ],
+      },
+      'contents': contents,
+      'generationConfig': {
+        'temperature': 0.6,
+        'topK': 40,
+        'topP': 0.95,
+        'maxOutputTokens': 1024,
+        'thinkingConfig': <String, dynamic>{'thinkingBudget': 0},
+      },
+    };
 
     final response = await _dio.post<Map<String, dynamic>>(
       '/models/$_model:generateContent',
