@@ -26,12 +26,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.dispose();
   }
 
+  /// reverse: true이므로 minScrollExtent(0)가 새 메시지 쪽(맨 아래)
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
       Future.delayed(const Duration(milliseconds: 300), () {
         if (_scrollController.hasClients) {
           _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
+            _scrollController.position.minScrollExtent,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
           );
@@ -82,10 +83,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ? _buildEmptyState(context)
                 : ListView.builder(
                     controller: _scrollController,
+                    reverse: true,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     itemCount: currentSession.messages.length,
                     itemBuilder: (context, index) {
-                      final message = currentSession.messages[index];
+                      // reverse: true → index 0이 맨 아래(최신), 마지막 index가 맨 위(오래됨)
+                      // messages는 [오래된순...최신순] 저장 → 역순으로 표시
+                      final message = currentSession.messages[
+                          currentSession.messages.length - 1 - index];
                       return ChatBubble(message: message);
                     },
                   ),
@@ -192,6 +197,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Expanded(
               child: TextField(
                 controller: _messageController,
+                autofocus: true, // 화면 진입 시 입력 필드 포커스 → 가상 키보드 자동 표시 (iOS/Android)
                 enabled: !isLoading,
                 decoration: InputDecoration(
                   hintText: '메시지를 입력하세요...',
