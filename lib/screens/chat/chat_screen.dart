@@ -17,12 +17,27 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final FocusNode _messageFocusNode = FocusNode();
   bool _isComposing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 첫 프레임 렌더 후 포커스 요청 → 가상 키보드 표시 (iOS/Android)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          _messageFocusNode.requestFocus();
+        }
+      });
+    });
+  }
 
   @override
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _messageFocusNode.dispose();
     super.dispose();
   }
 
@@ -197,7 +212,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Expanded(
               child: TextField(
                 controller: _messageController,
-                autofocus: true, // 화면 진입 시 입력 필드 포커스 → 가상 키보드 자동 표시 (iOS/Android)
+                focusNode: _messageFocusNode,
+                autofocus: true,
                 enabled: !isLoading,
                 decoration: InputDecoration(
                   hintText: '메시지를 입력하세요...',
@@ -247,6 +263,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
 
     _scrollToBottom();
+
+    // 메시지 전송 후 포커스 유지 → 키보드 계속 표시 (빈 영역 터치 시에만 내려감)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _messageFocusNode.requestFocus();
+      }
+    });
   }
 
   void _showEndDialog(BuildContext context) {
