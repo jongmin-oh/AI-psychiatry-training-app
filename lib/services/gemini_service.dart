@@ -1,9 +1,11 @@
-import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class GeminiService {
-  static const String _baseUrl = 'https://generativelanguage.googleapis.com/v1';
+  static const String _baseUrl =
+      'https://generativelanguage.googleapis.com/v1beta';
   static const String _model = 'gemini-flash-latest';
 
   late final Dio _dio;
@@ -15,9 +17,37 @@ class GeminiService {
       BaseOptions(
         baseUrl: _baseUrl,
         connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 60),
       ),
     );
+  }
+
+  /// bash 스크립트와 동일한 요청 형식: role "user", thinkingConfig.thinkingBudget: -1
+  Map<String, dynamic> _buildRequestBody(
+    String text, {
+    Map<String, dynamic>? generationConfig,
+  }) {
+    final config = <String, dynamic>{
+      'temperature': 0.6,
+      'topK': 40,
+      'topP': 0.95,
+      'maxOutputTokens': 1024,
+      'thinkingConfig': <String, dynamic>{'thinkingBudget': 0},
+    };
+    if (generationConfig != null) {
+      config.addAll(generationConfig);
+    }
+    return {
+      'contents': [
+        {
+          'role': 'user',
+          'parts': [
+            {'text': text},
+          ],
+        },
+      ],
+      'generationConfig': config,
+    };
   }
 
   Future<String> generateAIResponse({
@@ -25,75 +55,61 @@ class GeminiService {
     required List<Map<String, String>> conversationHistory,
     required String userMessage,
   }) async {
-    try {
-      String fullPrompt = '$systemPrompt\n\n=== 대화 내역 ===\n';
-
-      for (var message in conversationHistory) {
-        final speaker = message['sender'] == 'user' ? '상담원' : 'AI 학생';
-        fullPrompt += '$speaker: ${message['content']}\n';
-      }
-
-      fullPrompt += '상담원: $userMessage\n';
-      fullPrompt += 'AI 학생:';
-
-      final response = await _dio.post(
-        '/models/$_model:generateContent',
-        queryParameters: {'key': _apiKey},
-        data: {
-          'contents': [
-            {
-              'parts': [
-                {'text': fullPrompt},
-              ],
-            },
-          ],
-          'generationConfig': {
-            'temperature': 0.9,
-            'topK': 40,
-            'topP': 0.95,
-            'maxOutputTokens': 1024,
-          },
-        },
-      );
-
-      final candidates = response.data['candidates'] as List;
-      if (candidates.isEmpty) {
-        throw Exception('No response from Gemini API');
-      }
-
-      final content = candidates[0]['content'];
-      final parts = content['parts'] as List;
-      final text = parts[0]['text'] as String;
-
-      return text.trim();
-    } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception(
-          'API Error: ${e.response?.statusCode} - ${e.response?.data}',
-        );
-      } else {
-        throw Exception('Network Error: ${e.message}');
-      }
-    } catch (e) {
-      throw Exception('Unexpected Error: $e');
+    final fullPrompt = StringBuffer('$systemPrompt\n\n=== 대화 내역 ===\n');
+    for (var message in conversationHistory) {
+      final speaker = message['sender'] == 'user' ? '상담원' : 'AI 학생';
+      fullPrompt.writeln('$speaker: ${message['content']}');
     }
+    fullPrompt.writeln('상담원: $userMessage');
+    fullPrompt.write('AI 학생:');
+
+    final body = _buildRequestBody(fullPrompt.toString());
+
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/models/$_model:generateContent',
+      queryParameters: {'key': _apiKey},
+      data: body,
+    );
+
+    final responseData = response.data;
+    if (responseData == null) {
+      throw Exception('No response from Gemini API');
+    }
+
+    final candidates = responseData['candidates'] as List?;
+    if (candidates == null || candidates.isEmpty) {
+      throw Exception('No response from Gemini API');
+    }
+
+    final content = candidates[0]['content'] as Map<String, dynamic>?;
+    if (content == null) {
+      throw Exception('No response from Gemini API');
+    }
+
+    final parts = content['parts'] as List?;
+    if (parts == null || parts.isEmpty) {
+      throw Exception('No response from Gemini API');
+    }
+
+    final text = parts[0]['text'] as String? ?? '';
+    return text.trim();
   }
 
+  /// 피드백은 전체 JSON이 필요하므로 generateContent 유지, 요청 형식만 통일
   Future<Map<String, dynamic>> generateFeedback({
     required List<Map<String, String>> conversationHistory,
   }) async {
-    try {
-      String conversationText = '=== 상담 대화 내역 ===\n';
-      for (var message in conversationHistory) {
-        final speaker = message['sender'] == 'user' ? '상담원' : 'AI 학생';
-        conversationText += '$speaker: ${message['content']}\n';
-      }
+    final conversationText = StringBuffer('=== 상담 대화 내역 ===\n');
+    for (var message in conversationHistory) {
+      final speaker = message['sender'] == 'user' ? '상담원' : 'AI 학생';
+      conversationText.writeln('$speaker: ${message['content']}');
+    }
 
-      String feedbackPrompt =
-          '''
+    final feedbackPrompt =
+        '''
 다음 상담 대화를 분석하고 피드백을 제공해주세요.
 
-$conversationText
+${conversationText.toString()}
 
 평가 기준:
 1. 공감 표현 (1-5점): 상담원이 학생의 감정을 얼마나 잘 이해하고 공감했는가
@@ -117,59 +133,51 @@ $conversationText
 JSON만 출력하고 다른 설명은 하지 마세요.
 ''';
 
-      final response = await _dio.post(
-        '/models/$_model:generateContent',
-        queryParameters: {'key': _apiKey},
-        data: {
-          'contents': [
-            {
-              'parts': [
-                {'text': feedbackPrompt},
-              ],
-            },
-          ],
-          'generationConfig': {
-            'temperature': 0.7,
-            'topK': 40,
-            'topP': 0.95,
-            'maxOutputTokens': 2048,
-          },
-        },
-      );
+    final body = _buildRequestBody(
+      feedbackPrompt,
+      generationConfig: {'temperature': 0.7, 'maxOutputTokens': 2048},
+    );
+    // 피드백은 스트리밍 불필요, generateContent 사용
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/models/$_model:generateContent',
+      queryParameters: {'key': _apiKey},
+      data: body,
+    );
 
-      final candidates = response.data['candidates'] as List;
-      if (candidates.isEmpty) {
-        throw Exception('No response from Gemini API');
-      }
-
-      final content = candidates[0]['content'];
-      final parts = content['parts'] as List;
-      String text = parts[0]['text'] as String;
-
-      text = text.trim();
-      if (text.startsWith('```json')) {
-        text = text.substring(7);
-      }
-      if (text.startsWith('```')) {
-        text = text.substring(3);
-      }
-      if (text.endsWith('```')) {
-        text = text.substring(0, text.length - 3);
-      }
-      text = text.trim();
-
-      final feedbackJson = jsonDecode(text) as Map<String, dynamic>;
-      return feedbackJson;
-    } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception(
-          'API Error: ${e.response?.statusCode} - ${e.response?.data}',
-        );
-      } else {
-        throw Exception('Network Error: ${e.message}');
-      }
-    } catch (e) {
-      throw Exception('Unexpected Error: $e');
+    final responseData = response.data;
+    if (responseData == null) {
+      throw Exception('No response from Gemini API');
     }
+
+    final candidates = responseData['candidates'] as List?;
+    if (candidates == null || candidates.isEmpty) {
+      throw Exception('No response from Gemini API');
+    }
+
+    final content = candidates[0]['content'] as Map<String, dynamic>?;
+    if (content == null) {
+      throw Exception('No response from Gemini API');
+    }
+
+    final parts = content['parts'] as List?;
+    if (parts == null || parts.isEmpty) {
+      throw Exception('No response from Gemini API');
+    }
+
+    var text = parts[0]['text'] as String? ?? '';
+    text = text.trim();
+    if (text.startsWith('```json')) {
+      text = text.substring(7);
+    }
+    if (text.startsWith('```')) {
+      text = text.substring(3);
+    }
+    if (text.endsWith('```')) {
+      text = text.substring(0, text.length - 3);
+    }
+    text = text.trim();
+
+    final feedbackJson = jsonDecode(text) as Map<String, dynamic>;
+    return feedbackJson;
   }
 }
