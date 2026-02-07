@@ -5,6 +5,7 @@ import '../../models/training_session.dart';
 import '../../providers/session_provider.dart';
 import '../../core/constants/colors.dart';
 
+
 class FeedbackScreen extends ConsumerWidget {
   final TrainingSession session;
 
@@ -74,6 +75,24 @@ class FeedbackScreen extends ConsumerWidget {
               feedback.improvements,
               AppColors.warning,
             ),
+            if (session.messages.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    context.push('/conversation-history', extra: session.messages);
+                  },
+                  icon: const Icon(Icons.chat_outlined),
+                  label: const Text('대화 내역 보기'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: AppColors.primaryBlue),
+                    foregroundColor: AppColors.primaryBlue,
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
           ],
         ),

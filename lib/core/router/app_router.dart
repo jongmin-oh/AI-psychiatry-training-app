@@ -6,7 +6,9 @@ import '../../screens/scenario_detail/scenario_detail_screen.dart';
 import '../../screens/chat/chat_screen.dart';
 import '../../screens/feedback/feedback_screen.dart';
 import '../../screens/history/history_screen.dart';
+import '../../screens/conversation_history/conversation_history_screen.dart';
 import '../../models/training_session.dart';
+import '../../models/chat_message.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -56,6 +58,14 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final session = state.extra as TrainingSession;
         return FeedbackScreen(session: session);
+      },
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
+      path: '/conversation-history',
+      builder: (context, state) {
+        final messages = state.extra as List<ChatMessage>;
+        return ConversationHistoryScreen(messages: messages);
       },
     ),
   ],
