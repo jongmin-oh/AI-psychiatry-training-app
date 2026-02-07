@@ -94,21 +94,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: currentSession.messages.isEmpty
-                ? _buildEmptyState(context)
-                : ListView.builder(
-                    controller: _scrollController,
-                    reverse: true,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    itemCount: currentSession.messages.length,
-                    itemBuilder: (context, index) {
-                      // reverse: true → index 0이 맨 아래(최신), 마지막 index가 맨 위(오래됨)
-                      // messages는 [오래된순...최신순] 저장 → 역순으로 표시
-                      final message = currentSession.messages[
-                          currentSession.messages.length - 1 - index];
-                      return ChatBubble(message: message);
-                    },
-                  ),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: currentSession.messages.isEmpty
+                  ? _buildEmptyState(context)
+                  : ListView.builder(
+                      controller: _scrollController,
+                      reverse: true,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      itemCount: currentSession.messages.length,
+                      itemBuilder: (context, index) {
+                        // reverse: true → index 0이 맨 아래(최신), 마지막 index가 맨 위(오래됨)
+                        // messages는 [오래된순...최신순] 저장 → 역순으로 표시
+                        final message = currentSession.messages[
+                            currentSession.messages.length - 1 - index];
+                        return ChatBubble(message: message);
+                      },
+                    ),
+            ),
           ),
           if (chatState.isLoading)
             Container(
@@ -214,7 +218,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 controller: _messageController,
                 focusNode: _messageFocusNode,
                 autofocus: true,
-                enabled: !isLoading,
+                readOnly: isLoading,
                 decoration: InputDecoration(
                   hintText: '메시지를 입력하세요...',
                   border: OutlineInputBorder(
