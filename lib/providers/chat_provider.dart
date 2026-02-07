@@ -58,8 +58,19 @@ class ChatNotifier extends StateNotifier<AsyncValue<void>> {
         };
       }).toList();
 
+      var systemPrompt = scenario.systemPrompt;
+      if (scenario.exampleDialogue.isNotEmpty) {
+        final buffer = StringBuffer('\n\n대화 예시:\n');
+        for (final turn in scenario.exampleDialogue) {
+          final speaker = turn['sender'] == 'counselor' ? '상담원' : '학생';
+          buffer.writeln('$speaker: ${turn['message']}');
+        }
+        buffer.write('\n위 예시를 참고하되, 똑같이 따라하지 말고 자연스럽게 대화하세요.');
+        systemPrompt += buffer.toString();
+      }
+
       final aiResponse = await gemini.generateAIResponse(
-        systemPrompt: scenario.systemPrompt,
+        systemPrompt: systemPrompt,
         conversationHistory: conversationHistory,
         userMessage: content,
       );

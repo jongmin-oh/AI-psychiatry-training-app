@@ -15,6 +15,7 @@ class Scenario {
   final String background;
   final String learningGoals;
   final List<String> greetings; // AI 학생의 첫인사 후보 (랜덤 선택)
+  final List<Map<String, dynamic>> exampleDialogue; // 대화 예시
   final String systemPrompt;
   final Map<String, dynamic> characterProfile;
 
@@ -28,6 +29,7 @@ class Scenario {
     required this.background,
     required this.learningGoals,
     required this.greetings,
+    this.exampleDialogue = const [],
     required this.systemPrompt,
     required this.characterProfile,
   });
