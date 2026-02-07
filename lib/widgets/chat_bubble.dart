@@ -41,13 +41,17 @@ class ChatBubble extends StatelessWidget {
                   bottomRight: Radius.circular(isUser ? 4 : 16),
                 ),
               ),
-              child: Text(
-                message.content,
-                style: TextStyle(
-                  color: isUser ? Colors.white : AppColors.primaryText,
-                  fontSize: 16,
-                ),
-              ),
+              child: isUser
+                  ? Text(
+                      message.content,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    )
+                  : Text.rich(
+                      _buildStyledContent(message.content, isUser),
+                    ),
             ),
             const SizedBox(height: 4),
             Padding(
@@ -61,6 +65,45 @@ class ChatBubble extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  TextSpan _buildStyledContent(String content, bool isUser) {
+    final spans = <InlineSpan>[];
+    final regex = RegExp(r'\(([^)]+)\)');
+    var lastEnd = 0;
+
+    for (final match in regex.allMatches(content)) {
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(
+          text: content.substring(lastEnd, match.start),
+          style: TextStyle(
+            color: isUser ? Colors.white : AppColors.primaryText,
+            fontSize: 16,
+          ),
+        ));
+      }
+      spans.add(TextSpan(
+        text: match.group(1),
+        style: const TextStyle(
+          color: Colors.grey,
+          fontSize: 14,
+          fontStyle: FontStyle.italic,
+        ),
+      ));
+      lastEnd = match.end;
+    }
+
+    if (lastEnd < content.length) {
+      spans.add(TextSpan(
+        text: content.substring(lastEnd),
+        style: TextStyle(
+          color: isUser ? Colors.white : AppColors.primaryText,
+          fontSize: 16,
+        ),
+      ));
+    }
+
+    return TextSpan(children: spans);
   }
 
   String _formatTime(DateTime dateTime) {

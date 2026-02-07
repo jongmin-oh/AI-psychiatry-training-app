@@ -128,8 +128,9 @@ class GeminiService {
       throw Exception('No response from Gemini API');
     }
 
-    final text = parts[0]['text'] as String? ?? '';
-    return text.trim();
+    var text = parts[0]['text'] as String? ?? '';
+    text = text.trim().replaceAll('\n', ' ');
+    return text;
   }
 
   /// 피드백은 전체 JSON이 필요하므로 generateContent 유지, 요청 형식만 통일
