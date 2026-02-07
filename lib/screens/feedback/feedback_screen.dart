@@ -31,7 +31,13 @@ class FeedbackScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('훈련 완료'),
-        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            ref.read(currentSessionProvider.notifier).clearSession();
+            context.go('/scenarios');
+          },
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -68,8 +74,7 @@ class FeedbackScreen extends ConsumerWidget {
               feedback.improvements,
               AppColors.warning,
             ),
-            const SizedBox(height: 32),
-            _buildActionButtons(context, ref),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -177,28 +182,4 @@ class FeedbackScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, WidgetRef ref) {
-    return Column(
-      children: [
-        ElevatedButton(
-          onPressed: () {
-            ref.read(currentSessionProvider.notifier).clearSession();
-            context.go('/');
-          },
-          child: const Text('메인으로'),
-        ),
-        const SizedBox(height: 12),
-        OutlinedButton(
-          onPressed: () {
-            ref.read(currentSessionProvider.notifier).clearSession();
-            context.go('/');
-          },
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 48),
-          ),
-          child: const Text('다시 시도'),
-        ),
-      ],
-    );
-  }
 }

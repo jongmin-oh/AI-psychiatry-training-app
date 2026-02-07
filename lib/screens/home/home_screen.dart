@@ -16,14 +16,6 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI 상담 트레이닝'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () {
-              context.push('/history');
-            },
-          ),
-        ],
       ),
       body: scenariosAsync.when(
         data: (scenarios) {
