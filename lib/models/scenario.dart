@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'scenario.g.dart';
@@ -12,7 +14,7 @@ class Scenario {
   final String category;
   final String background;
   final String learningGoals;
-  final String greeting;
+  final List<String> greetings; // AI 학생의 첫인사 후보 (랜덤 선택)
   final String systemPrompt;
   final Map<String, dynamic> characterProfile;
 
@@ -25,11 +27,18 @@ class Scenario {
     required this.category,
     required this.background,
     required this.learningGoals,
-    required this.greeting,
+    required this.greetings,
     required this.systemPrompt,
     required this.characterProfile,
   });
 
-  factory Scenario.fromJson(Map<String, dynamic> json) => _$ScenarioFromJson(json);
+  /// greetings 리스트에서 랜덤으로 하나 선택
+  String getRandomGreeting() {
+    if (greetings.isEmpty) return '';
+    return greetings[Random().nextInt(greetings.length)];
+  }
+
+  factory Scenario.fromJson(Map<String, dynamic> json) =>
+      _$ScenarioFromJson(json);
   Map<String, dynamic> toJson() => _$ScenarioToJson(this);
 }

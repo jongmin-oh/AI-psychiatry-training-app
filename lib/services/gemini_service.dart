@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -90,6 +91,16 @@ class GeminiService {
         'thinkingConfig': <String, dynamic>{'thinkingBudget': 0},
       },
     };
+
+    developer.log(
+      '=== [Chat] System Prompt ===\n$systemPrompt',
+      name: 'GeminiService',
+    );
+    developer.log(
+      '=== [Chat] Contents (${contents.length} messages) ===\n'
+      '${const JsonEncoder.withIndent('  ').convert(contents)}',
+      name: 'GeminiService',
+    );
 
     final response = await _dio.post<Map<String, dynamic>>(
       '/models/$_model:generateContent',

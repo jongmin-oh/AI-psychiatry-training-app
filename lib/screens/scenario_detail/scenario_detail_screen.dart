@@ -98,7 +98,7 @@ class ScenarioDetailScreen extends ConsumerWidget {
               onPressed: () {
                 ref
                     .read(currentSessionProvider.notifier)
-                    .startSession(scenario.id, greeting: scenario.greeting);
+                    .startSession(scenario.id, greeting: scenario.getRandomGreeting());
                 context.push('/chat');
               },
               child: const Text('훈련 시작'),
