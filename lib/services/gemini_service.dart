@@ -87,7 +87,7 @@ class GeminiService {
         'temperature': 0.6,
         'topK': 40,
         'topP': 0.95,
-        'maxOutputTokens': 1024,
+        'maxOutputTokens': 200,
         'thinkingConfig': <String, dynamic>{'thinkingBudget': 0},
       },
     };
@@ -130,6 +130,17 @@ class GeminiService {
 
     var text = parts[0]['text'] as String? ?? '';
     text = text.trim().replaceAll('\n', ' ');
+
+    if (text.length > 200) {
+      final truncated = text.substring(0, 200);
+      final lastDot = truncated.lastIndexOf('.');
+      if (lastDot > 0) {
+        text = truncated.substring(0, lastDot + 1);
+      } else {
+        text = truncated;
+      }
+    }
+
     return text;
   }
 
