@@ -78,6 +78,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: '나가기',
+          onPressed: () => _showExitDialog(context),
+        ),
         title: scenarioAsync.when(
           data: (scenario) => Text(scenario?.title ?? '채팅'),
           loading: () => const Text('로딩 중...'),
@@ -305,6 +310,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     Future.delayed(const Duration(milliseconds: 50), () {
       if (mounted) _messageFocusNode.requestFocus();
     });
+  }
+
+  void _showExitDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('상담 나가기'),
+        content: const Text('상담에서 나가시겠습니까?\n나중에 상담 탭에서 이어할 수 있습니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('계속하기'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              ref.read(currentSessionProvider.notifier).clearSession();
+              context.go('/counseling');
+            },
+            child: const Text('나가기'),
+          ),
+        ],
+      ),
+    );
   }
 
   /// 상담 종료 시 최소 필요한 대화 횟수 (1회 = 사용자 메시지 1개 + AI 응답 1개)

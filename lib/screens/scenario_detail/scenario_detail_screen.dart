@@ -43,6 +43,12 @@ class ScenarioDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildContent(BuildContext context, WidgetRef ref, Scenario scenario) {
+    final activeSessions = ref.watch(activeSessionsProvider);
+    final activeSession = activeSessions
+        .where((s) => s.scenarioId == scenario.id)
+        .toList();
+    final hasActiveSession = activeSession.isNotEmpty;
+
     return Column(
       children: [
         Expanded(
@@ -94,14 +100,32 @@ class ScenarioDetailScreen extends ConsumerWidget {
             ],
           ),
           child: SafeArea(
-            child: ElevatedButton(
-              onPressed: () {
-                ref
-                    .read(currentSessionProvider.notifier)
-                    .startSession(scenario.id, greeting: scenario.getRandomGreeting());
-                context.push('/chat');
-              },
-              child: const Text('훈련 시작'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasActiveSession)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        ref
+                            .read(currentSessionProvider.notifier)
+                            .resumeSession(activeSession.first);
+                        context.push('/chat');
+                      },
+                      child: const Text('이어하기'),
+                    ),
+                  ),
+                ElevatedButton(
+                  onPressed: () {
+                    ref
+                        .read(currentSessionProvider.notifier)
+                        .startSession(scenario.id, greeting: scenario.getRandomGreeting());
+                    context.push('/chat');
+                  },
+                  child: const Text('훈련 시작'),
+                ),
+              ],
             ),
           ),
         ),

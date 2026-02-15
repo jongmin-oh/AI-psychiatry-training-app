@@ -6,6 +6,7 @@ import '../../screens/scenario_detail/scenario_detail_screen.dart';
 import '../../screens/chat/chat_screen.dart';
 import '../../screens/feedback/feedback_screen.dart';
 import '../../screens/history/history_screen.dart';
+import '../../screens/counseling/counseling_screen.dart';
 import '../../screens/conversation_history/conversation_history_screen.dart';
 import '../../models/training_session.dart';
 import '../../models/chat_message.dart';
@@ -26,6 +27,14 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/scenarios',
               builder: (context, state) => const HomeScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/counseling',
+              builder: (context, state) => const CounselingScreen(),
             ),
           ],
         ),

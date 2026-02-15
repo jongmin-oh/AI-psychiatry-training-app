@@ -47,6 +47,10 @@ class StorageService {
     return getAllSessions().where((s) => s.isCompleted).toList();
   }
 
+  List<TrainingSession> getActiveSessions() {
+    return getAllSessions().where((s) => !s.isCompleted).toList();
+  }
+
   bool isScenarioCompleted(String scenarioId) {
     final completedIds = _prefs.getStringList(_completedScenariosKey) ?? [];
     return completedIds.contains(scenarioId);

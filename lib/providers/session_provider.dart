@@ -72,6 +72,10 @@ class CurrentSessionNotifier extends StateNotifier<TrainingSession?> {
     storage.saveSession(state!);
   }
 
+  void resumeSession(TrainingSession session) {
+    state = session;
+  }
+
   void clearSession() {
     state = null;
   }
@@ -81,6 +85,12 @@ class CurrentSessionNotifier extends StateNotifier<TrainingSession?> {
 final allSessionsProvider = Provider<List<TrainingSession>>((ref) {
   final storage = ref.watch(storageServiceProvider);
   return storage.getAllSessions();
+});
+
+// Active (in-progress) sessions Provider
+final activeSessionsProvider = Provider<List<TrainingSession>>((ref) {
+  final storage = ref.watch(storageServiceProvider);
+  return storage.getActiveSessions();
 });
 
 // Completed sessions only Provider
