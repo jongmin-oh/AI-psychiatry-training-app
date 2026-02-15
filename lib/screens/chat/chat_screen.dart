@@ -7,6 +7,7 @@ import '../../providers/chat_provider.dart';
 import '../../providers/scenario_provider.dart';
 import '../../widgets/chat_bubble.dart';
 import '../../widgets/typing_indicator.dart';
+import '../../widgets/full_page_loading_overlay.dart';
 import '../../core/constants/colors.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -63,6 +64,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final currentSession = ref.watch(currentSessionProvider);
     final chatState = ref.watch(chatProvider);
     final isAITyping = ref.watch(isAITypingProvider);
+    final isFeedbackGenerating = ref.watch(isFeedbackGeneratingProvider);
 
     if (currentSession == null) {
       return Scaffold(
@@ -78,7 +80,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       scenarioByIdProvider(currentSession.scenarioId),
     );
 
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -172,6 +176,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
         ],
       ),
+        ),
+        // Full-page loading overlay when generating feedback
+        if (isFeedbackGenerating)
+          const FullPageLoadingOverlay(
+            message: 'AI가 상담 내용을 분석하고 있습니다...',
+            subtitle: '피드백을 생성하는 중입니다',
+          ),
+      ],
     );
   }
 

@@ -14,6 +14,9 @@ final geminiServiceProvider = Provider<GeminiService>((ref) {
 // AI Typing state Provider
 final isAITypingProvider = StateProvider<bool>((ref) => false);
 
+// Feedback Generating state Provider
+final isFeedbackGeneratingProvider = StateProvider<bool>((ref) => false);
+
 // Chat state Provider
 final chatProvider = StateNotifierProvider<ChatNotifier, AsyncValue<void>>((ref) {
   return ChatNotifier(ref);
@@ -229,6 +232,9 @@ class ChatNotifier extends StateNotifier<AsyncValue<void>> {
     final currentSession = ref.read(currentSessionProvider);
     if (currentSession == null) return null;
 
+    // Show feedback generating overlay
+    ref.read(isFeedbackGeneratingProvider.notifier).state = true;
+
     state = const AsyncValue.loading();
 
     try {
@@ -256,9 +262,15 @@ class ChatNotifier extends StateNotifier<AsyncValue<void>> {
         createdAt: DateTime.now(),
       );
 
+      // Hide feedback generating overlay
+      ref.read(isFeedbackGeneratingProvider.notifier).state = false;
+
       state = const AsyncValue.data(null);
       return feedback;
     } catch (e, stack) {
+      // Hide feedback generating overlay even on error
+      ref.read(isFeedbackGeneratingProvider.notifier).state = false;
+
       state = AsyncValue.error(e, stack);
       return null;
     }
