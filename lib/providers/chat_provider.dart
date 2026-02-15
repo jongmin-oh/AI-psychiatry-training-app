@@ -11,6 +11,9 @@ final geminiServiceProvider = Provider<GeminiService>((ref) {
   return GeminiService();
 });
 
+// AI Typing state Provider
+final isAITypingProvider = StateProvider<bool>((ref) => false);
+
 // Chat state Provider
 final chatProvider = StateNotifierProvider<ChatNotifier, AsyncValue<void>>((ref) {
   return ChatNotifier(ref);
@@ -42,6 +45,9 @@ class ChatNotifier extends StateNotifier<AsyncValue<void>> {
       );
 
       ref.read(currentSessionProvider.notifier).addMessage(userMessage);
+
+      // Show AI typing indicator
+      ref.read(isAITypingProvider.notifier).state = true;
 
       // 2. Generate AI response
       final scenario = await _getCurrentScenario();
@@ -94,8 +100,13 @@ class ChatNotifier extends StateNotifier<AsyncValue<void>> {
 
       ref.read(currentSessionProvider.notifier).addMessage(aiMessage);
 
+      // Hide AI typing indicator
+      ref.read(isAITypingProvider.notifier).state = false;
+
       state = const AsyncValue.data(null);
     } catch (e, stack) {
+      // Hide AI typing indicator even on error
+      ref.read(isAITypingProvider.notifier).state = false;
       state = AsyncValue.error(e, stack);
     }
   }

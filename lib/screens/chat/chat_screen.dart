@@ -6,6 +6,7 @@ import '../../providers/session_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/scenario_provider.dart';
 import '../../widgets/chat_bubble.dart';
+import '../../widgets/typing_indicator.dart';
 import '../../core/constants/colors.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -61,6 +62,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final currentSession = ref.watch(currentSessionProvider);
     final chatState = ref.watch(chatProvider);
+    final isAITyping = ref.watch(isAITypingProvider);
 
     if (currentSession == null) {
       return Scaffold(
@@ -69,7 +71,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       );
     }
 
-    // Auto-scroll when messages change
+    // Auto-scroll when messages change or typing state changes
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
     final scenarioAsync = ref.watch(
@@ -106,21 +108,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     onTap: () => FocusScope.of(context).unfocus(),
-                    child: currentSession.messages.isEmpty
+                    child: currentSession.messages.isEmpty && !isAITyping
                         ? _buildEmptyState(context)
                         : ListView.builder(
                             controller: _scrollController,
                             reverse: true,
                             // reverse이므로 bottom 패딩이 새 메시지 쪽(화면 하단) 여백
                             padding: const EdgeInsets.only(top: 16, bottom: 88),
-                            itemCount: currentSession.messages.length,
+                            itemCount: currentSession.messages.length + (isAITyping ? 1 : 0),
                             itemBuilder: (context, index) {
+                              // Typing indicator is at index 0 when reverse=true
+                              if (isAITyping && index == 0) {
+                                return const TypingIndicator();
+                              }
+
+                              final messageIndex = isAITyping ? index - 1 : index;
                               final message =
                                   currentSession.messages[currentSession
                                           .messages
                                           .length -
                                       1 -
-                                      index];
+                                      messageIndex];
                               return ChatBubble(message: message);
                             },
                           ),
@@ -137,31 +145,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (chatState.isLoading)
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 16),
-                        const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.primaryBlue,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'AI 학생이 생각하고 있습니다...',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: AppColors.secondaryText),
-                        ),
-                      ],
-                    ),
-                  ),
                 if (chatState.hasError)
                   Container(
                     padding: const EdgeInsets.all(8),
