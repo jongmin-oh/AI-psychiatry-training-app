@@ -63,6 +63,10 @@ class CurrentSessionNotifier extends StateNotifier<TrainingSession?> {
 
     final storage = ref.read(storageServiceProvider);
     storage.markScenarioAsCompleted(state!.scenarioId);
+
+    // Invalidate providers to refresh progress immediately
+    ref.invalidate(completedScenarioCountProvider);
+    ref.invalidate(isScenarioCompletedProvider);
   }
 
   void _saveSession() {
