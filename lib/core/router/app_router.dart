@@ -8,6 +8,7 @@ import '../../screens/feedback/feedback_screen.dart';
 import '../../screens/history/history_screen.dart';
 import '../../screens/counseling/counseling_screen.dart';
 import '../../screens/conversation_history/conversation_history_screen.dart';
+import '../../screens/analytics/analytics_screen.dart';
 import '../../models/training_session.dart';
 import '../../models/chat_message.dart';
 
@@ -43,6 +44,15 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/history',
               builder: (context, state) => const HistoryScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/analytics',
+              builder: (context, state) =>
+                  const AnalyticsScreen(),
             ),
           ],
         ),

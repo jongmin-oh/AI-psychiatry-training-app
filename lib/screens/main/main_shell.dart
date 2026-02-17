@@ -34,6 +34,11 @@ class MainShell extends StatelessWidget {
             selectedIcon: Icon(Icons.history),
             label: '훈련기록',
           ),
+          NavigationDestination(
+            icon: Icon(Icons.analytics_outlined),
+            selectedIcon: Icon(Icons.analytics),
+            label: '분석',
+          ),
         ],
       ),
     );
