@@ -85,6 +85,7 @@ class CurrentSessionNotifier extends StateNotifier<TrainingSession?> {
 
   void clearSession() {
     state = null;
+    ref.invalidate(activeSessionsProvider);
   }
 }
 
