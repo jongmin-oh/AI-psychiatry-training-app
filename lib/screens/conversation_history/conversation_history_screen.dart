@@ -17,7 +17,12 @@ class ConversationHistoryScreen extends StatelessWidget {
         title: const Text('대화 내역'),
       ),
       body: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.fromLTRB(
+          0,
+          16,
+          0,
+          16 + MediaQuery.of(context).padding.bottom,
+        ),
         itemCount: messages.length,
         itemBuilder: (context, index) {
           return ChatBubble(message: messages[index]);
