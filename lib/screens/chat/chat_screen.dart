@@ -372,6 +372,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(dialogContext);
+              _messageFocusNode.unfocus();
 
               final feedback = await ref
                   .read(chatProvider.notifier)
